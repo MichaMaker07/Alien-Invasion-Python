@@ -3,27 +3,72 @@ import sys
 import pygame
 
 from settings import Settings
+from ship import Ship
+class AlienInvasion:
+    """Overall aclass to manage game assets and behavior."""
+    def __init__(self):
+        # Initialisiert das Spiel und erstellt ein screen-Objekt.
+        pygame.init()
+        self.settings = Settings()
 
-def run_game():
-    # Initialisiert das Spiel und erstellt ein screen-Objekt.
-    pygame.init()
-    ai_settings = Settings()
-    screen = pygame.display.set_mode((ai_settings.screen_width,ai_settings.screen_height))
+
+        self.screen = pygame.display.set_mode((self.settings.screen_width,self.settings.screen_height))
     
-    pygame.display.set_caption("Alien Invasion")
-    # Legt die Hintergrundfarbe fest.
-    # bg_color = (230,230,230)
-    #sStartet die Hauptschleife des Spiels.
-    while True:
+        pygame.display.set_caption("Alien Invasion")
         
-        #Lauscht auf Tastatur- und Mausereignisse.
+        self.ship = Ship(self)
+        
+    def run_game(self):
+        """ Start the main loop for the game."""
+        # Legt die Hintergrundfarbe fest.
+        # bg_color = (230,230,230)
+        # Startet die Hauptschleife des Spiels.
+        while True:
+            #Lauscht auf Tastatur- und Mausereignisse.
+            self._check_events()
+            self.ship.update()
+            self._update_screen()
+            
+            
+    def _check_events(self):
+        """Respond to keypresses and mouse events."""
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                sys.exit()
-        
-        screen.fill(ai_settings.bg_color)
+                if event.type == pygame.QUIT:
+                    sys.exit()
+                
+                elif event.type == pygame.KEYDOWN:
+                    _check_keydown_events(event)
+                elif event.type == pygame.KEYUP:
+                    _check_keyup_events(event)
+    
+    
+    def _check_keydown_events(self,event):
+        """Respont to keypresses. """
+        if event.key == pygame.K_RIGHT:
+            self.ship.moving_right = True
+        elif event.key == pygame.K_LEFT:
+            self.ship.moving_left = True
+        elif event.type == pygame.K_q:
+            sys.exit()    
+            
+    def _check_keyup_events(self,event):
+        """Respond to key releases."""
+        if event.key == pygame.K_RIGHT:
+            self.ship.moving_right = False
+        elif event.key == pygame.K_LEFT:
+            self.ship.moving_left = False
+            
+    
+    def _update_screen(self):
+        """Update images on the screen, and flip to the new screen"""
+        # Zeichnet den Bildschirm bei jedem Schleifendurchlauf neu.
+        self.screen.fill(self.settings.bg_color)
+        self.ship.blitme()
         # Macht den als Letztes gezeichneten Bildschirm sichtbar        
         pygame.display.flip()
         
-
-run_game()
+        
+if __name__ == '__main__':
+    # Erstellt eine Spielinstanz und fuerht das Spiel aus
+    ai = AlienInvasion()
+    ai.run_game()
