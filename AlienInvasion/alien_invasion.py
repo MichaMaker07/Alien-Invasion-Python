@@ -5,6 +5,7 @@ import pygame
 from bullet import Bullet
 from settings import Settings
 from ship import Ship
+from alien import Alien
 
 class AlienInvasion:
     """Overall aclass to manage game assets and behavior."""
@@ -22,7 +23,9 @@ class AlienInvasion:
         
         self.ship = Ship(self)
         self.bullets = pygame.sprite.Group()
+        self.aliens = pygame.sprite.Group()
         
+        self._create_fleet()
     def run_game(self):
         """ Start the main loop for the game."""
         # Legt die Hintergrundfarbe fest.
@@ -34,6 +37,41 @@ class AlienInvasion:
             self.ship.update()
             self._update_bullets()
             self._update_screen()
+            self._update_aliens()
+
+    def _create_fleet(self):
+        """Create the fleet of aliens."""
+        # Erstellt ein Invasionsschiff und ermittelt die Anzahl der
+        # Invasionsschiffe pro Zeile.
+        # Der Abstand beträgt jweils eine Schiffsbreite
+        alien = Alien(self)
+        alien_width, alien_height = alien.rect.size
+        available_space_x = self.settings.screen_width - (2 * alien_width)
+        number_aliens_x = available_space_x // (2 * alien_width)
+        
+        # Bestimmt die Anzahl der Reihen von Invasionsschiffen, die auf den Bildschirm passen
+        ship_height = self.ship.rect.height
+        available_space_y = (self.settings.screen_height -
+                             (3 * alien_height) - ship_height)
+        number_rows = available_space_y // (2 * alien_height)
+        
+        # Erstellt die Invasionsschiffen.
+        for row_number in range(number_rows):
+            for alien_number in range(number_aliens_x):
+                self._create_alien(alien_number, row_number)
+                
+    def _create_alien(self, alien_number, row_number):
+        """Create an alien and place it in the row."""
+        alien = Alien(self)
+        alien_width, alien_height = alien.rect.size
+        alien.x = alien_width + 2 * alien_width * alien_number
+        alien.rect.x = alien.x
+        alien.rect.y = alien.rect.height + 2 * alien.rect.height * row_number
+        self.aliens.add(alien)
+        
+        
+            
+            
 
     
     def _update_bullets(self):
@@ -45,6 +83,15 @@ class AlienInvasion:
                 self.bullets.remove(bullet)
             print(len(self.bullets))
             
+        # Prüft, ob Geschosse ein Invasionsschiff getroffen haben. Wenn ja,
+        # werden das Geschoss und das getroffene Schiff entfernt.
+        collisions = pygame.sprite.groupcollide(self.bullets, self.aliens, True, True)
+        
+        if not self.aliens:
+            # Zerstört vorhandene Geschosse und erstellt eine neue Flott.
+            self.bullets.empty()
+            self._create_fleet()
+        
     def _check_events(self):
         """Respond to keypresses and mouse events."""
         for event in pygame.event.get():
@@ -63,7 +110,11 @@ class AlienInvasion:
             self.bullets.add(new_bullet)
 
                 
-    
+    def _update_aliens(self):
+        """Update the positions fo all aliens in the fleet."""
+        self._check_fleet_edges()
+        self.aliens.update()
+        
     
     def _check_keydown_events(self,event):
         """Respont to keypresses. """
@@ -96,10 +147,23 @@ class AlienInvasion:
         self.ship.blitme()
         for bullet in self.bullets.sprites():
             bullet.draw_bullet()
+            
+        self.aliens.draw(self.screen)    
         # Macht den als Letztes gezeichneten Bildschirm sichtbar        
         pygame.display.flip()
         
-        
+    def _check_fleet_edges(self):
+        """Respond appropriately if any aliens have reached an edge."""
+        for alien in self.aliens.sprites():
+            if alien.check_edges():
+                self._change_fleet_direction()
+                break
+            
+    def _change_fleet_direction(self):
+        """Drop the entire fleet and change the fleets's direction"""
+        for alien in self.aliens.sprites():
+            alien.rect.y += self.settings.fleet_drop_speed
+        self.settings.fleet_direction *= -1
 if __name__ == '__main__':
     # Erstellt eine Spielinstanz und fuerht das Spiel aus
     ai = AlienInvasion()
