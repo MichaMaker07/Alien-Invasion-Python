@@ -10,6 +10,7 @@ class Settings():
         
         # Schiffseinstellungen
         self.ship_speed = 1.5
+        self.ship_limit = 3
         
         # Invasionsschiffseinstellung
         self.alien_speed = 1.0
