@@ -83,10 +83,12 @@ class AlienInvasion:
                 self.bullets.remove(bullet)
             print(len(self.bullets))
             
-        # Prüft, ob Geschosse ein Invasionsschiff getroffen haben. Wenn ja,
-        # werden das Geschoss und das getroffene Schiff entfernt.
-        collisions = pygame.sprite.groupcollide(self.bullets, self.aliens, True, True)
+        self._check_bullet_alien_collisions()
         
+    def _check_bullet_alien_collisions(sefl):
+        """Respond to bullet-alien collisions."""
+        # Entfernt alle kollidierten Geschosse und Invasionsschiffe.
+        collisions = pygame.sprite.groupcollide(self.bullets, self.aliens, True, True)
         if not self.aliens:
             # Zerstört vorhandene Geschosse und erstellt eine neue Flott.
             self.bullets.empty()
